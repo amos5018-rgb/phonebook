@@ -33,6 +33,7 @@
 .student-card.selection-mode {
   position: relative;
   padding-top: 2.35rem;
+  min-height: 78px;
 }
 
 .student-card.selection-mode .selection-check {
@@ -62,7 +63,17 @@
 }
 
 .student-card.selection-mode .quick-actions {
-  opacity: 0.42;
+  display: none;
+}
+
+.student-card.selection-mode .primary-contact,
+.student-card.selection-mode .card-checks {
+  display: none;
+}
+
+.student-card.selection-mode .card-head {
+  align-items: center;
+  padding-left: 0.25rem;
 }
 
 .button:disabled {
@@ -116,6 +127,6 @@
 
 .selection-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 0.4rem;
 }
