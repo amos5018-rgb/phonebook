@@ -127,6 +127,19 @@
 
 .selection-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.4rem;
+}
+
+.selection-actions .button {
+  min-width: 0;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  white-space: nowrap;
+}
+
+@media (min-width: 390px) {
+  .selection-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
