@@ -13,19 +13,22 @@
     <header class="app-header">
       <div class="header-row">
         <h1>학급 연락처 관리</h1>
-        <button id="openSettingsButton" type="button" class="icon-button" aria-label="설정 열기" title="설정">
-          <svg class="gear-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="12" cy="12" r="3.5"></circle>
-            <line x1="12" y1="2.5" x2="12" y2="6"></line>
-            <line x1="12" y1="18" x2="12" y2="21.5"></line>
-            <line x1="2.5" y1="12" x2="6" y2="12"></line>
-            <line x1="18" y1="12" x2="21.5" y2="12"></line>
-            <line x1="5" y1="5" x2="7.5" y2="7.5"></line>
-            <line x1="16.5" y1="16.5" x2="19" y2="19"></line>
-            <line x1="5" y1="19" x2="7.5" y2="16.5"></line>
-            <line x1="16.5" y1="7.5" x2="19" y2="5"></line>
-          </svg>
-        </button>
+        <div class="header-actions">
+          <button id="toggleSelectionButton" type="button" class="header-select-button" aria-pressed="false">선택</button>
+          <button id="openSettingsButton" type="button" class="icon-button" aria-label="설정 열기" title="설정">
+            <svg class="gear-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="3.5"></circle>
+              <line x1="12" y1="2.5" x2="12" y2="6"></line>
+              <line x1="12" y1="18" x2="12" y2="21.5"></line>
+              <line x1="2.5" y1="12" x2="6" y2="12"></line>
+              <line x1="18" y1="12" x2="21.5" y2="12"></line>
+              <line x1="5" y1="5" x2="7.5" y2="7.5"></line>
+              <line x1="16.5" y1="16.5" x2="19" y2="19"></line>
+              <line x1="5" y1="19" x2="7.5" y2="16.5"></line>
+              <line x1="16.5" y1="7.5" x2="19" y2="5"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -201,6 +204,32 @@
       </form>
     </dialog>
 
+    <dialog id="groupSmsModal" class="detail-modal">
+      <article class="add-student-panel">
+        <h3>단체 문자 수신 대상</h3>
+        <p id="groupSmsSummary" class="group-sms-summary"></p>
+        <p class="group-sms-warning">단체 대화로 열리므로 수신자끼리 번호가 보일 수 있습니다.</p>
+        <p id="groupSmsError" class="error form-error" aria-live="polite"></p>
+        <div class="group-sms-options">
+          <button type="button" class="button sms-button group-sms-option" data-phone-field="studentPhone">학생 번호</button>
+          <button type="button" class="button sms-button group-sms-option" data-phone-field="guardian1Phone">보호자 1</button>
+          <button type="button" class="button sms-button group-sms-option" data-phone-field="guardian2Phone">보호자 2</button>
+        </div>
+      </article>
+      <form method="dialog" class="modal-footer">
+        <button id="closeGroupSmsButton" type="submit" class="button secondary close-button">닫기</button>
+      </form>
+    </dialog>
+
+    <div id="selectionBar" class="selection-bar" hidden>
+      <span id="selectionCount">선택 0명</span>
+      <div class="selection-actions">
+        <button id="clearSelectionButton" type="button" class="button secondary small">전체 해제</button>
+        <button id="openGroupSmsButton" type="button" class="button sms-button small">단체 문자</button>
+        <button id="cancelSelectionButton" type="button" class="button secondary small">취소</button>
+      </div>
+    </div>
+
     <div id="undoBar" class="undo-bar" hidden>
       <span id="undoMessage"></span>
       <button id="undoDeleteButton" type="button" class="button secondary small">삭제 취소</button>
@@ -208,6 +237,10 @@
 
     <template id="cardTemplate">
       <article class="student-card" tabindex="0" role="button">
+        <label class="selection-check" aria-label="학생 선택">
+          <input type="checkbox" class="student-select-checkbox" />
+          <span>선택</span>
+        </label>
         <div class="card-head">
           <h3 class="student-name"></h3>
           <p class="student-class-number"></p>
