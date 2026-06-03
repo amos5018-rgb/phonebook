@@ -5,6 +5,7 @@
   const toggleSelectionButton = document.getElementById("toggleSelectionButton");
   const selectionBar = document.getElementById("selectionBar");
   const selectionCount = document.getElementById("selectionCount");
+  const selectAllButton = document.getElementById("selectAllButton");
   const clearSelectionButton = document.getElementById("clearSelectionButton");
   const openGroupSmsButton = document.getElementById("openGroupSmsButton");
   const cancelSelectionButton = document.getElementById("cancelSelectionButton");
@@ -73,6 +74,14 @@
     updateSelectionUi();
   }
 
+  function selectAllVisibleStudents() {
+    state.filtered.forEach((student) => {
+      selectedStudentIds.add(student.id);
+    });
+    decorateCards();
+    updateSelectionUi();
+  }
+
   function setSelectionMode(enabled) {
     selectionMode = Boolean(enabled);
     if (!selectionMode) {
@@ -105,10 +114,35 @@
       if (card.dataset.groupSmsBound === "true") return;
       card.dataset.groupSmsBound = "true";
 
+      if (checkbox) {
+        checkbox.addEventListener(
+          "click",
+          (event) => {
+            if (!selectionMode) return;
+            event.stopPropagation();
+          },
+          true
+        );
+        checkbox.addEventListener("change", (event) => {
+          if (!selectionMode) return;
+          event.stopPropagation();
+          const targetId = card.dataset.studentId;
+          if (!targetId) return;
+          if (event.target.checked) {
+            selectedStudentIds.add(targetId);
+          } else {
+            selectedStudentIds.delete(targetId);
+          }
+          decorateCards();
+          updateSelectionUi();
+        });
+      }
+
       card.addEventListener(
         "click",
         (event) => {
           if (!selectionMode) return;
+          if (event.target.closest(".selection-check")) return;
           event.preventDefault();
           event.stopImmediatePropagation();
           const targetId = card.dataset.studentId;
@@ -170,7 +204,7 @@
       return;
     }
 
-    window.location.href = `sms:${numbers.join(",")}`;
+    window.location.href = `sms:/open?addresses=${numbers.map(encodeURIComponent).join(",")}`;
   }
 
   const originalRenderCards = renderCards;
@@ -181,6 +215,7 @@
   };
 
   toggleSelectionButton?.addEventListener("click", () => setSelectionMode(!selectionMode));
+  selectAllButton?.addEventListener("click", selectAllVisibleStudents);
   clearSelectionButton?.addEventListener("click", () => {
     selectedStudentIds.clear();
     decorateCards();
