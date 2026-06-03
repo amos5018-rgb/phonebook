@@ -1,4 +1,16 @@
 (() => {
+  if (window.__phonebookGroupSmsLoaded) return;
+  window.__phonebookGroupSmsLoaded = true;
+
+  if (
+    typeof state === "undefined" ||
+    typeof renderCards !== "function" ||
+    typeof toTel !== "function"
+  ) {
+    console.warn("Group SMS feature could not initialize.");
+    return;
+  }
+
   const selectedStudentIds = new Set();
   let selectionMode = false;
 
@@ -13,12 +25,20 @@
   const groupSmsSummary = document.getElementById("groupSmsSummary");
   const groupSmsError = document.getElementById("groupSmsError");
 
+  function allStudents() {
+    return Array.isArray(state.students) ? state.students : [];
+  }
+
+  function visibleStudents() {
+    return Array.isArray(state.filtered) ? state.filtered : [];
+  }
+
   function selectedStudents() {
-    return state.students.filter((student) => selectedStudentIds.has(student.id));
+    return allStudents().filter((student) => selectedStudentIds.has(student.id));
   }
 
   function cleanupSelection() {
-    const validIds = new Set(state.students.map((student) => student.id));
+    const validIds = new Set(allStudents().map((student) => student.id));
     selectedStudentIds.forEach((id) => {
       if (!validIds.has(id)) selectedStudentIds.delete(id);
     });
@@ -44,6 +64,9 @@
   function updateSelectionUi() {
     cleanupSelection();
     const count = selectedStudentIds.size;
+    const visible = visibleStudents();
+    const selectedVisibleCount = visible.filter((student) => selectedStudentIds.has(student.id)).length;
+    const allVisibleSelected = visible.length > 0 && selectedVisibleCount === visible.length;
 
     if (toggleSelectionButton) {
       toggleSelectionButton.textContent = selectionMode ? "선택 중" : "선택";
@@ -56,6 +79,14 @@
 
     if (selectionBar) {
       selectionBar.hidden = !selectionMode;
+    }
+
+    if (selectAllButton) {
+      selectAllButton.disabled = !selectionMode || visible.length === 0 || allVisibleSelected;
+    }
+
+    if (clearSelectionButton) {
+      clearSelectionButton.disabled = count === 0;
     }
 
     if (openGroupSmsButton) {
@@ -75,7 +106,10 @@
   }
 
   function selectAllVisibleStudents() {
-    state.filtered.forEach((student) => {
+    const visible = visibleStudents();
+    if (!visible.length) return;
+
+    visible.forEach((student) => {
       selectedStudentIds.add(student.id);
     });
     decorateCards();
@@ -94,10 +128,11 @@
 
   function decorateCards() {
     cleanupSelection();
+    const visible = visibleStudents();
     const cards = [...document.querySelectorAll(".student-card")];
 
     cards.forEach((card, index) => {
-      const student = state.filtered[index];
+      const student = visible[index];
       if (!student) return;
 
       const selected = selectedStudentIds.has(student.id);
@@ -106,9 +141,11 @@
       card.classList.toggle("selection-mode", selectionMode);
       card.classList.toggle("selected", selected);
       card.dataset.studentId = student.id;
+      card.setAttribute("aria-selected", String(selectionMode && selected));
 
       if (checkbox) {
         checkbox.checked = selected;
+        checkbox.setAttribute("aria-label", `${student.name} 선택`);
       }
 
       if (card.dataset.groupSmsBound === "true") return;
