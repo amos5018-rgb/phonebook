@@ -358,6 +358,88 @@ function setActionLink(button, scheme, phone) {
   button.removeAttribute("aria-disabled");
 }
 
+function copyPhoneButtonHtml(phone, label) {
+  const normalized = String(phone || "").trim();
+  if (!normalized) return "";
+
+  return `<button type="button" class="copy-phone-button" data-copy-phone="${escapeHtml(encodeURIComponent(normalized))}" aria-label="${escapeHtml(label)} 복사">복사</button>`;
+}
+
+function phoneWithCopyHtml(phone, label, tokens = []) {
+  const normalized = String(phone || "").trim();
+  const valueHtml = tokens.length ? highlightText(normalized || "-", tokens) : escapeHtml(normalized || "-");
+
+  return `
+    <span class="phone-inline">
+      <span class="phone-value">${valueHtml}</span>
+      ${copyPhoneButtonHtml(normalized, label)}
+    </span>
+  `;
+}
+
+function fallbackCopyText(text) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-1000px";
+  textarea.style.left = "-1000px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+
+  const copied = document.execCommand("copy");
+  document.body.removeChild(textarea);
+
+  if (!copied) {
+    throw new Error("copy failed");
+  }
+}
+
+function copyText(text) {
+  if (navigator.clipboard?.writeText && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  }
+
+  fallbackCopyText(text);
+  return Promise.resolve();
+}
+
+function showCopyFeedback(button, message, isError = false) {
+  const originalText = button.dataset.originalText || button.textContent;
+  button.dataset.originalText = originalText;
+  button.textContent = message;
+  button.classList.toggle("copied", !isError);
+  button.classList.toggle("copy-error", isError);
+
+  window.setTimeout(() => {
+    if (!button.isConnected) return;
+    button.textContent = originalText;
+    button.classList.remove("copied", "copy-error");
+  }, 1200);
+}
+
+function handleCopyPhoneClick(event) {
+  const target = event.target instanceof Element ? event.target : null;
+  const button = target?.closest(".copy-phone-button");
+  if (!button) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  let phone = "";
+  try {
+    phone = decodeURIComponent(button.dataset.copyPhone || "");
+  } catch (error) {
+    phone = "";
+  }
+  if (!phone) return;
+
+  copyText(phone)
+    .then(() => showCopyFeedback(button, "복사됨"))
+    .catch(() => showCopyFeedback(button, "실패", true));
+}
+
 function isChoseongQuery(text = "") {
   return /^[ㄱ-ㅎ]+$/.test(text);
 }
@@ -527,7 +609,7 @@ function renderCards(tokens = parseSearchTokens(searchInput.value)) {
     const card = cardTemplate.content.firstElementChild.cloneNode(true);
     card.querySelector(".student-name").innerHTML = highlightText(student.name, tokens);
     card.querySelector(".student-class-number").innerHTML = highlightText(`${student.className} ${student.number}번`, tokens);
-    card.querySelector(".primary-contact").innerHTML = highlightText(`연락처: ${student.studentPhone || "-"}`, tokens);
+    card.querySelector(".primary-contact").innerHTML = `연락처: ${phoneWithCopyHtml(student.studentPhone, "학생 전화번호", tokens)}`;
 
     const callButton = card.querySelector(".call-button");
     const smsButton = card.querySelector(".sms-button");
@@ -598,7 +680,7 @@ function guardianActionRow(label, phone) {
   const tel = toTel(phone);
   return `
     <div class="guardian-row">
-      <p class="guardian-title">${escapeHtml(label)}: ${escapeHtml(phone)}</p>
+      <p class="guardian-title">${escapeHtml(label)}: ${phoneWithCopyHtml(phone, `${label} 전화번호`)}</p>
       <div class="guardian-actions">
         <a class="button call-button" href="tel:${tel}">전화</a>
         <a class="button sms-button" href="sms:${tel}">문자</a>
@@ -889,7 +971,7 @@ function showDetail(student) {
   detailContent.innerHTML = `
     <h3>${escapeHtml(student.name)} · ${escapeHtml(student.className)} ${escapeHtml(student.number)}번</h3>
     <div class="detail-grid">
-      <div><strong>학생 전화</strong>: ${escapeHtml(student.studentPhone || "-")}</div>
+      <div><strong>학생 전화</strong>: ${phoneWithCopyHtml(student.studentPhone, "학생 전화번호")}</div>
       <div><strong>주소</strong>: ${escapeHtml(student.address || "-")}</div>
       <div>
         <strong>보호자 연락</strong>
@@ -1148,6 +1230,7 @@ openCheckCategoryButton?.addEventListener("click", () => {
 openSettingsButton?.addEventListener("click", openSettingsModal);
 cancelAddStudentButton?.addEventListener("click", closeAddStudentModal);
 undoDeleteButton?.addEventListener("click", undoDelete);
+document.addEventListener("click", handleCopyPhoneClick, true);
 
 addCheckCategoryButton?.addEventListener("click", () => {
   clearCheckCategoryError();
