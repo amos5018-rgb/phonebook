@@ -251,21 +251,58 @@ textarea:focus {
 }
 
 .copy-phone-button {
-  min-height: 24px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.12rem 0.45rem;
+  border-radius: 50%;
+  padding: 0;
   background: #fff;
   color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1.2;
+  line-height: 0;
   cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
 }
 
 .copy-phone-button:hover {
   border-color: var(--accent);
+  background: #f5f9ff;
   color: var(--accent);
+}
+
+.copy-phone-button:active {
+  transform: scale(0.94);
+}
+
+.copy-phone-button:focus-visible {
+  outline: 3px solid rgba(31, 111, 255, 0.2);
+  outline-offset: 2px;
+}
+
+.copy-phone-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.copy-phone-icon-back {
+  opacity: 0.58;
+}
+
+.copy-phone-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .copy-phone-button.copied {

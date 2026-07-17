@@ -362,7 +362,15 @@ function copyPhoneButtonHtml(phone, label) {
   const normalized = String(phone || "").trim();
   if (!normalized) return "";
 
-  return `<button type="button" class="copy-phone-button" data-copy-phone="${escapeHtml(encodeURIComponent(normalized))}" aria-label="${escapeHtml(label)} 복사">복사</button>`;
+  return `
+    <button type="button" class="copy-phone-button" data-copy-phone="${escapeHtml(encodeURIComponent(normalized))}" aria-label="${escapeHtml(label)} 복사" title="복사">
+      <svg class="copy-phone-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect class="copy-phone-icon-back" x="4.75" y="7.25" width="10.5" height="12.5" rx="2.4"></rect>
+        <rect class="copy-phone-icon-front" x="8.75" y="3.25" width="10.5" height="12.5" rx="2.4"></rect>
+      </svg>
+      <span class="copy-phone-status" aria-live="polite"></span>
+    </button>
+  `;
 }
 
 function phoneWithCopyHtml(phone, label, tokens = []) {
@@ -406,16 +414,24 @@ function copyText(text) {
 }
 
 function showCopyFeedback(button, message, isError = false) {
-  const originalText = button.dataset.originalText || button.textContent;
-  button.dataset.originalText = originalText;
-  button.textContent = message;
+  const originalLabel = button.dataset.originalLabel || button.getAttribute("aria-label") || "전화번호 복사";
+  const status = button.querySelector(".copy-phone-status");
+
+  button.dataset.originalLabel = originalLabel;
+  button.setAttribute("aria-label", `${originalLabel} ${message}`);
   button.classList.toggle("copied", !isError);
   button.classList.toggle("copy-error", isError);
+  if (status) {
+    status.textContent = message;
+  }
 
   window.setTimeout(() => {
     if (!button.isConnected) return;
-    button.textContent = originalText;
+    button.setAttribute("aria-label", originalLabel);
     button.classList.remove("copied", "copy-error");
+    if (status) {
+      status.textContent = "";
+    }
   }, 1200);
 }
 
