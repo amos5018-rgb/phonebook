@@ -292,10 +292,6 @@ textarea:focus {
   stroke-width: 1.9;
 }
 
-.copy-phone-icon-back {
-  opacity: 0.58;
-}
-
 .copy-phone-status {
   position: absolute;
   width: 1px;
